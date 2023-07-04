@@ -1,23 +1,18 @@
 module.exports = {
     //关闭语法检查
     lintOnSave: false,
-    //开启代理服务器 (方式一)
-    /*devServer: {
-        proxy: 'http://localhost:5000'
-    }*/
     devServer: {
-        proxy: {
+        open: true,
+        https: false,
+        //以上的ip和端口是我们本机的;下面为需要跨域的
+        proxy: { //配置跨域
             '/api': {
-                target: '<url>',
-                //将/api 换成 /
-                pathRewrite: {'^/api':''},
-                //支持websocket
+                target: 'http://121.36.38.232/api/', //这里后台的地址模拟的;应该填写你们真实的后台接口
                 ws: true,
-                //默认为true 用于控制请求头中的host值
-                changeOrigin: true
-            },
-            '/foo': {
-                target: '<other_url>'
+                changOrigin: true, //允许跨域
+                pathRewrite: {
+                    '^/api': '' //请求的时候使用这个api就可以
+                }
             }
         }
     }

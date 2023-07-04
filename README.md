@@ -495,3 +495,184 @@ methods: {
     }
 ```
 
+### 模块化+命名空间
+
+让代码更好维护，让多种数据分类更加明确
+
+修改`store.js`
+
+```
+//
+// 该文件用于创建vuex中最为核心的store
+//
+
+
+import Vue from "vue";
+import VuexEsm from "vuex";
+import countOptions from "@/store/modules/count";
+import personOptions from "@/store/modules/person";
+
+Vue.use(VuexEsm)
+
+
+//创建store
+const store = new VuexEsm.Store({
+    modules: {
+        countOptions,
+        personOptions
+    }
+})
+
+//导出store
+export default store
+```
+
+开启命名空间后，组件中读取数据
+
+```
+methods: {
+  add() {
+    const personObj = {
+      id: nanoid(),
+      name: this.name
+    }
+    // this.ADD_PERSON(personObj)
+    this.$store.commit('countOptions/ADD_PERSON', personObj)
+    this.name = ''
+  },
+  ...mapMutations('countOptions', ['ADD_PERSON']),
+  ...mapActions('personOptions',['addPersonServer'])
+},
+computed: {
+  ...mapState('personOptions', ['persons','personIntroduce']),
+  ...mapState('countOptions', ['sum'])
+}
+```
+
+## 路由
+
+1. 理解：一个路由（route）就是一组映射关系（key-value），多个路由器（router）进行管理
+2. 前端路由：key是路径，value是组件
+
+### 基本使用
+
+1. 安装vue-router `npm i vue-router@3`
+
+2. 编写router配置项
+
+	```
+	//
+	// 该文件专门用于创建整个应用的路由器
+	//
+	
+	//应用 路由router
+	import Vue from "vue";
+	import VueRouter from "vue-router";
+	
+	Vue.use(VueRouter)
+	const constantRoutes = [
+	    {
+	        path: '/about',
+	        component: () => import("@/components/About")
+	    },
+	    {
+	        path: '/home',
+	        component: () => import("@/components/Home")
+	    }
+	]
+	const router = new VueRouter({
+	    routes: constantRoutes
+	})
+	
+	export default router
+	```
+
+3. 实现切换（active-class可配置高亮样式）
+
+	```
+	<!--          原始使用页面跳转-->
+	<!--          <a class="list-group-item active">About</a>-->
+	<!--          <a class="list-group-item">Home</a>-->
+	          <router-link to="/about" class="list-group-item"  active-class="active">About</router-link>
+	          <router-link to="/home" class="list-group-item" active-class="active">Home</router-link>
+	        
+	```
+
+4. 指定展示位置
+
+	```
+	<!--            指定组件的呈现位置-->
+	            <router-view></router-view>
+	```
+
+### 注意点
+
+> - 路由组件通常存放在pages或者views文件夹，一般组件通常放`components`文件夹
+> - 通过切换，”隐藏“了的路由组件，默认是被销毁掉的，需要的时候再去挂载
+> - 每个组件都有自己的$route属性，里面存储着自己的路由信息
+> - 整个应用只有一个router，可以通过组件$router属性获取到
+
+### 嵌套路由
+
+1. 配置路由规则，使用children配置项
+
+	```
+	{
+	        path: '/home',
+	        component: () => import("@/views/Home"),
+	        children: [
+	            {
+	                path: 'news',
+	                component: () => import("@/views/News")
+	            },
+	            {
+	                path: 'message',
+	                component: () => import("@/views/Message")
+	            }
+	        ]
+	    },
+	```
+
+2. 跳转（要写完整路径）
+
+	```
+	<li>
+	  <router-link to="/home/news" active-class="active" class="list-group-item">News</router-link>
+	</li>
+	<li>
+	  <router-link to="/home/message" active-class="active" class="list-group-item">Message</router-link>
+	</li>
+	```
+
+### 路由的query参数
+
+1. 传递参数
+
+	```
+	<ul>
+	      <li v-for="item in messageList" :key="item.id">
+	<!--        跳转路由并携带query参数 字符串写法-->
+	<!--        <router-link :to="`/home/message/detail?id=${item.id}&title=${item.title}`">{{item.title}}</router-link>-->
+	<!--        to的对象写法-->
+	        <router-link :to="{
+	          path: '/home/message/detail',
+	          query: {
+	            id: item.id,
+	            title: item.title
+	          }
+	        }">
+	          {{item.title}}
+	        </router-link>
+	
+	      </li>
+	    </ul>
+	```
+
+2. 接收参数
+
+```
+<ul>
+  <li>消息编号：{{$route.query.id}}</li>
+  <li>消息标题：{{$route.query.title}}</li>
+</ul>
+```

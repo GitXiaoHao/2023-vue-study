@@ -30,14 +30,15 @@ export default {
         //借助mapState生成计算属性，从state中读取数据
         // ...mapState({sum: 'sum'}),
         //简写形式
-        ...mapState(['sum','persons']),
+        ...mapState('countOptions',['sum']),
+        ...mapState('personOptions',['persons']),
         //借助mapGetters生成计算属性，从getters中读取数据
-        ...mapGetters(['bigSum'])
+        ...mapGetters('countOptions',['bigSum'])
     },
     methods: {
-        ...mapMutations(['INCREMENT','DECREMENT']),
+        ...mapMutations('countOptions',['INCREMENT','DECREMENT']),
         //借助mapActions生成对应的方法，方法会调用dispatch联系actions
-        ...mapActions(['incrementOdd','incrementWait'])
+        ...mapActions('countOptions',['incrementOdd','incrementWait'])
     }
 }
 </script>
