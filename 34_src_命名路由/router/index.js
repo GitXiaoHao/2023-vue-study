@@ -25,6 +25,7 @@ const constantRoutes = [
                 component: () => import("@/views/Message"),
                 children: [
                     {
+                        name: 'Detail',
                         path: 'detail',
                         component: () => import("@/views/Detail")
                     }

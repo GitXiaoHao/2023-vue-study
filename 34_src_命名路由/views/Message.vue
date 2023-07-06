@@ -6,7 +6,7 @@
 <!--        <router-link :to="`/home/message/detail?id=${item.id}&title=${item.title}`">{{item.title}}</router-link>-->
 <!--        to的对象写法-->
         <router-link :to="{
-          path: '/home/message/detail',
+          name: 'Detail',
           query: {
             id: item.id,
             title: item.title

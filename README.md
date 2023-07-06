@@ -676,3 +676,283 @@ computed: {
   <li>消息标题：{{$route.query.title}}</li>
 </ul>
 ```
+
+### 命名路由
+
+1. 作用：可以简化路由的跳转
+
+	1. 给路由命名
+
+	```
+	 {
+	        path: '/home',
+	        component: () => import("@/views/Home"),
+	        children: [
+	            {
+	                path: 'news',
+	                component: () => import("@/views/News")
+	            },
+	            {
+	                path: 'message',
+	                component: () => import("@/views/Message"),
+	                children: [
+	                    {
+	                        name: 'Detail',
+	                        path: 'detail',
+	                        component: () => import("@/views/Detail")
+	                    }
+	                ]
+	            }
+	        ]
+	    },
+	```
+
+	2. 简化跳转
+
+	```
+	<router-link :to="{
+	  name: 'Detail',
+	  query: {
+	    id: item.id,
+	    title: item.title
+	  }
+	}">
+	  {{item.title}}
+	</router-link>
+	```
+
+### 路由的params参数
+
+1. 配置路由，声明接收params参数
+
+	```
+	{
+	    path: 'message',
+	    component: () => import("@/views/Message"),
+	    children: [
+	        {
+	            name: 'Detail',
+	            path: 'detail/:id/:title',
+	            component: () => import("@/views/Detail")
+	        }
+	    ]
+	}
+	```
+
+2. 传递参数
+
+	```
+	<!--        跳转路由并携带query参数 字符串写法-->
+	<!--        <router-link :to="`/home/message/detail/${item.id}/${item.title}`">{{ item.title }}</router-link>-->
+	<!--        对象写法-->
+	        <router-link :to="{
+	          name:'Detail',
+	          params: {
+	            id: item.id,
+	            title:item.title
+	          }
+	        }">
+	          {{ item.title }}
+	        </router-link>
+	```
+
+3. 接收参数
+
+	```
+	<li>消息编号：{{$route.params.id}}</li>
+	<li>消息标题：{{$route.params.title}}</li>
+	```
+
+特别注意：路由携带params参数时，若使用to的对象写法，则不能使用path配置项，必须使用name配置
+
+### 路由的props配置
+
+```
+children: [
+    {
+        name: 'Detail',
+        path: 'detail/:id/:title',
+        component: () => import("@/views/Detail"),
+        //props的第二种写法,若为真,就会把该路由组件收到的所有params参数以props的形式传递
+        props: true
+        //props函数
+        // props($route){
+        //     return {
+        //         id: $route.query.id,
+        //         title: $route.query.title
+        //     }
+        // }
+        // props({query: {id, title}}) {
+        //     return {
+        //         id: id,
+        //         title: title
+        //     }
+        // }
+    }
+]
+```
+
+```
+<template>
+  <ul>
+    <li>消息编号：{{id}}</li>
+    <li>消息标题：{{title}}</li>
+  </ul>
+</template>
+
+<script>
+export default {
+  name: "Detail",
+  props: ['id','title']
+}
+</script>
+```
+
+### replace属性
+
+1. 作用：控制路由跳转时操作浏览器历史记录的模式
+2. 浏览器的历史记录有两种写入方式：分别为`push`和`replace`，push时追加历史记录，replace时替换当前记录，路由跳转的时候默认是push
+3. 开启replace模式：在router-link8加上replace
+
+### 编程式路由导航
+
+1. 作用：不借助link实现路由跳转
+
+```
+methods: {
+  pushShow(item){
+    this.$router.push({
+      name: 'Detail',
+      params: {
+        id: item.id,
+        title:item.title
+      }
+    })
+  },
+  replaceShow(item){
+    this.$router.replace({
+      name: 'Detail',
+      params: {
+        id: item.id,
+        title:item.title
+      }
+    })
+  }
+  
+  methods: {
+    back(){
+      this.$router.back()
+    },
+    forward(){
+      this.$router.forward()
+    }
+  }
+```
+
+### 缓存路由组件
+
+作用：让不展示的路由组件保持挂载，不被销毁
+
+```
+<!--      保持活跃-->
+      <keep-alive include="News">
+        <router-view></router-view>
+      </keep-alive>
+```
+
+### 两个新的生命周期钩子
+
+作用：路由组件所独有的两个钩子，用于捕获路由组件的激活状态
+
+```
+activated() {
+  this.timer = setInterval(() => {
+    this.opacity -= 0.01
+    if(this.opacity <= 0){
+      this.opacity = 1
+    }
+  },100)
+},
+deactivated() {
+  clearInterval(this.timer)
+}
+```
+
+### 路由守卫
+
+作用：对路由进行权限控制
+
+分类：全局守卫、独享守卫、组件内守卫
+
+- 全局守卫：
+
+```
+//全局前置路由守卫 初始化的时候调用 每次路由切换之前被调用
+router.beforeEach((to, from, next) => {
+
+    if(to.meta.isAuth){
+        if(!(localStorage.getItem('school') === '13')){
+            return
+        }
+    }
+    next()
+})
+router.afterEach((to, from) => {
+    document.title = to.meta.title || 'Vue'
+})
+```
+
+- 独享守卫
+
+```
+//独享守卫
+beforeEnter: (to,from,next) => {
+
+},
+```
+
+- 组件内守卫
+
+```
+//通过路由规则进入该组件时被调用
+beforeRouteEnter(to, from, next) {
+  next()
+},
+//通过路由规则 离开该组件时被调用
+beforeRouteLeave(to, from, next) {
+  next()
+}
+```
+
+### 路由器的两种工作模式
+
+1. 对于一个url来说，什么是hash值？——# 及其后面的内容就是hash值
+2. hash值不会包含在http请求中，即：hash值不会带给服务器
+3. hash模式：
+	1. 地址中永远带着#号，若以后将地址通过第三方app分享，若app校验严格，则地址会被标记为不合法
+	2. 兼容性好
+4. history模式：
+	1. 地址干净
+	2. 兼容性和hash模式相比略差
+	3. 应用部署上线时需要后端人员支持，解决刷新页面服务端404问题
+
+#### 解决404
+
+看到这里我相信大部分同学都能想到怎么解决问题了，
+
+产生问题的本质是因为我们的路由是通过JS来执行视图切换的，
+
+当我们进入到子路由时刷新页面，web容器没有相对应的页面此时会出现404
+
+所以我们只需要配置将任意页面都重定向到 index.html，把路由交由前端处理
+
+还是以 nginx 为例，更多版本的大家可以前往https://router.vuejs.org/zh/guide/essentials/history-mode.html 查看
+
+```cobol
+location / {
+
+
+
+  try_files $uri $uri/ /index.html;
+      }
+```
